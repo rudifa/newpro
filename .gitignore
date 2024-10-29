@@ -1,0 +1,10 @@
+# see also https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+
+.DS_Store
+
+main
+
+.env*
+
+.tmp/
+
