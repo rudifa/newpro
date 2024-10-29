@@ -8,12 +8,16 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/rudifa/newproject/tools"
+	"strings"
 )
 
 type model struct {
 	choices  []string
 	cursor   int
 	selected string
+	err      error
 }
 
 func initialModel() model {
@@ -33,6 +37,12 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// If there's an error and user presses 'q', quit immediately
+		if m.err != nil && (msg.String() == "q" || msg.String() == "ctrl+c") {
+			return m, tea.Quit
+		}
+		// Clear any existing error when a key is pressed
+		m.err = nil
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
@@ -49,65 +59,94 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			m.selected = m.choices[m.cursor]
-			return m, tea.Quit
+			return m.handleSelection()
 		}
 	}
 
 	return m, nil
 }
 
-func (m model) View() string {
-	s := "What kind of project would you like to create?\n\n"
+func (m model) handleSelection() (tea.Model, tea.Cmd) {
+    var err error
+    var projectName string
+    switch m.selected {
+    case "Create new Go project":
+        projectName = ".tmp/my-go-project"
+        err = tools.CreateGoProject(projectName, false, true) // No Cobra, with test
+    case "Create new Astro project":
+        projectName = ".tmp/my-astro-project"
+        err = tools.CreateAstroProject(projectName)
+    }
 
-	for i, choice := range m.choices {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
-		}
-		s += fmt.Sprintf("%s %s\n", cursor, choice)
-	}
+    if err != nil {
+        m.err = err
+        return m, tea.Quit
+    }
 
-	s += "\nPress q to quit.\n"
-
-	return s
+    m.err = nil
+    return m, tea.Quit
 }
 
+func (m model) View() string {
+    // Define styles
+    titleStyle := lipgloss.NewStyle().
+        Foreground(lipgloss.Color("205")).
+        Bold(true).
+        MarginBottom(1)
+
+    selectedStyle := lipgloss.NewStyle().
+        Foreground(lipgloss.Color("170")).
+        Bold(true)
+
+    normalStyle := lipgloss.NewStyle().
+        Foreground(lipgloss.Color("244"))
+
+    quitStyle := lipgloss.NewStyle().
+        Foreground(lipgloss.Color("240")).
+        Italic(true).
+        MarginTop(1)
+
+    errorStyle := lipgloss.NewStyle().
+        Foreground(lipgloss.Color("196")).
+        Bold(true).
+        MarginTop(1).
+        MarginBottom(1)
+
+    var s strings.Builder
+
+    // Always start with a newline
+    s.WriteString("\n")
+
+    if m.err != nil {
+        s.WriteString(errorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
+        s.WriteString("\n")
+        s.WriteString(quitStyle.Render("Press q to quit."))
+        return s.String()
+    }
+
+    s.WriteString(titleStyle.Render("What kind of project would you like to create?"))
+    s.WriteString("\n\n")
+
+    for i, choice := range m.choices {
+        cursor := "  "
+        if m.cursor == i {
+            cursor = "❯ "
+            s.WriteString(selectedStyle.Render(cursor + choice))
+        } else {
+            s.WriteString(normalStyle.Render(cursor + choice))
+        }
+        s.WriteString("\n")
+    }
+
+    s.WriteString("\n")
+    s.WriteString(quitStyle.Render("Press q to quit."))
+
+    return s.String()
+}
 func main() {
 	p := tea.NewProgram(initialModel())
-	m, err := p.Run()
-	if err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
-
-	// Handle the selected option
-	if m.(model).selected != "" {
-		switch m.(model).selected {
-		case "Create new Go project":
-			if err := createGoProject(); err != nil {
-				fmt.Printf("Error creating Go project: %v\n", err)
-				os.Exit(1)
-			}
-		case "Create new Astro project":
-			if err := createAstroProject(); err != nil {
-				fmt.Printf("Error creating Astro project: %v\n", err)
-				os.Exit(1)
-			}
-		}
-	}
-}
-
-
-func createGoProject() error {
-    // Your existing Go project creation logic
-	print("Creating Go project...")
-	fmt.Println("not yet.")
-    return nil
-}
-
-func createAstroProject() error {
-    // Your Astro project creation logic
-	print("Creating Astro project...")
-	fmt.Println("not yet.")
-    return nil
 }
