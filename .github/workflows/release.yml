@@ -1,0 +1,55 @@
+- name: Build project
+  run: |
+    # AMD64 builds
+    GOOS=linux GOARCH=amd64 go build -o newpro-linux-amd64
+    GOOS=windows GOARCH=amd64 go build -o newpro-windows-amd64.exe
+    GOOS=darwin GOARCH=amd64 go build -o newpro-darwin-amd64
+
+    # ARM64 builds
+    GOOS=linux GOARCH=arm64 go build -o newpro-linux-arm64
+    GOOS=windows GOARCH=arm64 go build -o newpro-windows-arm64.exe
+    GOOS=darwin GOARCH=arm64 go build -o newpro-darwin-arm64
+
+- name: Create Release
+  id: create_release
+  uses: actions/create-release@v1
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    tag_name: ${{ github.ref }}
+    release_name: Release ${{ github.ref }}
+    draft: false
+    prerelease: false
+
+# Upload steps for AMD64 binaries (keep existing ones)
+
+# Add new upload steps for ARM64 binaries
+- name: Upload Linux ARM64 Binary
+  uses: actions/upload-release-asset@v1
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    upload_url: ${{ steps.create_release.outputs.upload_url }}
+    asset_path: ./newpro-linux-arm64
+    asset_name: newpro-linux-arm64
+    asset_content_type: application/octet-stream
+
+- name: Upload Windows ARM64 Binary
+  uses: actions/upload-release-asset@v1
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    upload_url: ${{ steps.create_release.outputs.upload_url }}
+    asset_path: ./newpro-windows-arm64.exe
+    asset_name: newpro-windows-arm64.exe
+    asset_content_type: application/octet-stream
+
+- name: Upload macOS ARM64 Binary
+  uses: actions/upload-release-asset@v1
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    upload_url: ${{ steps.create_release.outputs.upload_url }}
+    asset_path: ./newpro-darwin-arm64
+    asset_name: newpro-darwin-arm64
+    asset_content_type: application/octet-stream
