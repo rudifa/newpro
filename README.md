@@ -1,4 +1,4 @@
-# newproject : a cli tool for creating new projects
+# newpro : a cli tool for creating new projects
 
 Available options:
 
