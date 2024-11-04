@@ -1,4 +1,4 @@
-module github.com/rudifa/newproject
+module github.com/rudifa/newpro
 
 go 1.22.2
 

@@ -10,7 +10,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/rudifa/newproject/tools"
+	"github.com/rudifa/newpro/tools"
 )
 
 type model struct {
