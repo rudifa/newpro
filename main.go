@@ -24,11 +24,18 @@ type model struct {
 	currentOption string
 }
 
+const (
+	createAstroProj = "Create a new Astro project"
+	createCppProj   = "Create a new C++ project"
+	createGoProj    = "Create a new Go project"
+)
+
 func initialModel() model {
 	return model{
 		choices: []string{
-			"Create new Go project",
-			"Create new Astro project",
+			createAstroProj,
+			createCppProj,
+			createGoProj,
 		},
 		cursor:        0,
 		projectName:   "",
@@ -66,7 +73,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentOption = "projectName"
 			case "projectName":
 				if m.projectName != "" {
-					if m.selected == "Create new Go project" {
+					if m.selected == createGoProj {
 						m.currentOption = "useCobraCLI"
 					} else {
 						return m.handleSelection()
@@ -167,10 +174,12 @@ func (m model) handleSelection() (tea.Model, tea.Cmd) {
 	}
 
 	switch m.selected {
-	case "Create new Go project":
-		err = tools.CreateGoProject(projectName, m.useCobraCLI, m.addTest)
-	case "Create new Astro project":
+	case createAstroProj:
 		err = tools.CreateAstroProject(projectName)
+	case createCppProj:
+		err = tools.CreateCppProject(projectName)
+	case createGoProj:
+		err = tools.CreateGoProject(projectName, m.useCobraCLI, m.addTest)
 	}
 
 	if err != nil {
