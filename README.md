@@ -1,7 +1,16 @@
 # newpro : a cli tool for creating new projects
 
-Available options:
+```
+newpro % newpro                                                                                                   [main|✔]
+Project Creator
 
-> Go
 
-> Astro
+Select project type:
+
+    > Create a new Astro project
+
+      Create a new C++ project
+
+      Create a new Go project
+
+```
